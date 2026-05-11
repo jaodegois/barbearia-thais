@@ -39,20 +39,30 @@ export default function AdminLoginPage() {
     setIsLoading(true)
 
     try {
-      const { data: settings } = await supabase
+      const { data: settings, error } = await supabase
         .from('settings')
         .select('admin_password')
         .limit(1)
         .single()
+
+      console.log('[v0] Login attempt - settings:', settings, 'error:', error, 'password entered:', password)
+
+      if (error) {
+        console.log('[v0] Supabase error:', error)
+        toast.error('Erro ao conectar com o banco de dados')
+        return
+      }
 
       if (settings && settings.admin_password === password) {
         localStorage.setItem('barberflow_admin', 'true')
         toast.success('Login realizado com sucesso!')
         router.push('/admin/dashboard')
       } else {
+        console.log('[v0] Password mismatch - expected:', settings?.admin_password, 'got:', password)
         toast.error('Senha incorreta')
       }
     } catch (error) {
+      console.log('[v0] Catch error:', error)
       toast.error('Erro ao fazer login')
     } finally {
       setIsLoading(false)

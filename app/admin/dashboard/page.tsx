@@ -43,7 +43,9 @@ import {
   CreditCard,
   Banknote,
   Smartphone,
-  Play
+  Play,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react'
 import { format, parseISO, startOfMonth, endOfMonth, isToday, addDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -129,17 +131,13 @@ export default function AdminDashboard() {
   }
 
   async function handleComplete() {
-    if (!selectedAppointment || !selectedPaymentMethod) {
-      toast.error('Selecione a forma de pagamento')
-      return
-    }
+    if (!selectedAppointment) return
 
     try {
       const { error } = await supabase
         .from('appointments')
         .update({ 
           status: 'completed',
-          payment_method: selectedPaymentMethod,
           completed_at: new Date().toISOString()
         })
         .eq('id', selectedAppointment.id)
@@ -477,43 +475,16 @@ export default function AdminDashboard() {
           <DialogHeader>
             <DialogTitle>Concluir Atendimento</DialogTitle>
             <DialogDescription>
-              Selecione a forma de pagamento
+              Confirmar que o atendimento foi realizado?
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-3 py-4">
-            <Button
-              variant={selectedPaymentMethod === 'credit' ? 'default' : 'outline'}
-              className={selectedPaymentMethod === 'credit' ? 'bg-primary' : ''}
-              onClick={() => setSelectedPaymentMethod('credit')}
-            >
-              <CreditCard className="h-4 w-4 mr-2" />
-              Crédito
-            </Button>
-            <Button
-              variant={selectedPaymentMethod === 'debit' ? 'default' : 'outline'}
-              className={selectedPaymentMethod === 'debit' ? 'bg-primary' : ''}
-              onClick={() => setSelectedPaymentMethod('debit')}
-            >
-              <CreditCard className="h-4 w-4 mr-2" />
-              Débito
-            </Button>
-            <Button
-              variant={selectedPaymentMethod === 'cash' ? 'default' : 'outline'}
-              className={selectedPaymentMethod === 'cash' ? 'bg-primary' : ''}
-              onClick={() => setSelectedPaymentMethod('cash')}
-            >
-              <Banknote className="h-4 w-4 mr-2" />
-              Dinheiro
-            </Button>
-            <Button
-              variant={selectedPaymentMethod === 'pix' ? 'default' : 'outline'}
-              className={selectedPaymentMethod === 'pix' ? 'bg-primary' : ''}
-              onClick={() => setSelectedPaymentMethod('pix')}
-            >
-              <Smartphone className="h-4 w-4 mr-2" />
-              Pix
-            </Button>
-          </div>
+          {selectedAppointment && (
+            <div className="py-4 space-y-2">
+              <p><strong>Cliente:</strong> {selectedAppointment.customer?.name}</p>
+              <p><strong>Valor:</strong> {formatCurrency(selectedAppointment.total_price)}</p>
+              <p><strong>Pagamento:</strong> {getPaymentMethodLabel(selectedAppointment.payment_method)}</p>
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setCompleteDialogOpen(false)}>
               Cancelar
@@ -668,22 +639,54 @@ function ReportsSection() {
 // Settings Section Component
 function SettingsSection({ settings, onUpdate }: { settings: Settings | null, onUpdate: () => void }) {
   const [shopName, setShopName] = useState(settings?.shop_name || '')
+  const [shopLogo, setShopLogo] = useState(settings?.shop_logo_url || '')
   const [shopAddress, setShopAddress] = useState(settings?.shop_address || '')
   const [whatsappLink, setWhatsappLink] = useState(settings?.whatsapp_link || '')
   const [currentPassword, setCurrentPassword] = useState(settings?.admin_password || '')
   const [newPassword, setNewPassword] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false)
   
   const supabase = createClient()
 
   useEffect(() => {
     if (settings) {
       setShopName(settings.shop_name)
+      setShopLogo(settings.shop_logo_url || '')
       setShopAddress(settings.shop_address || '')
       setWhatsappLink(settings.whatsapp_link || '')
       setCurrentPassword(settings.admin_password)
     }
   }, [settings])
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingLogo(true)
+    try {
+      // Convert to base64 for storage (simple approach without external storage)
+      const reader = new FileReader()
+      reader.onloadend = async () => {
+        const base64 = reader.result as string
+        const { error } = await supabase
+          .from('settings')
+          .update({ shop_logo_url: base64 })
+          .eq('id', settings?.id)
+
+        if (error) throw error
+
+        setShopLogo(base64)
+        toast.success('Logo atualizado!')
+        onUpdate()
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      toast.error('Erro ao fazer upload do logo')
+    } finally {
+      setIsUploadingLogo(false)
+    }
+  }
 
   async function handleSaveSettings() {
     setIsSaving(true)
@@ -743,6 +746,40 @@ function SettingsSection({ settings, onUpdate }: { settings: Settings | null, on
           <CardTitle>Identidade da Barbearia</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Logo Upload */}
+          <div className="space-y-2">
+            <Label>Logo da Barbearia</Label>
+            <div className="flex items-center gap-4">
+              <div className="h-20 w-20 rounded-full bg-secondary flex items-center justify-center overflow-hidden border-2 border-border">
+                {shopLogo ? (
+                  <img src={shopLogo} alt="Logo" className="h-full w-full object-cover" />
+                ) : (
+                  <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                )}
+              </div>
+              <div>
+                <input
+                  type="file"
+                  id="logoUpload"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => document.getElementById('logoUpload')?.click()}
+                  disabled={isUploadingLogo}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {isUploadingLogo ? 'Enviando...' : 'Alterar Logo'}
+                </Button>
+                <p className="text-xs text-muted-foreground mt-1">
+                  PNG, JPG ou GIF (máx. 2MB)
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="shopName">Nome da Barbearia</Label>
             <Input

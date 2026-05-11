@@ -23,7 +23,10 @@ import {
   Trash2,
   X,
   Check,
-  User
+  User,
+  CreditCard,
+  Banknote,
+  Smartphone
 } from 'lucide-react'
 import { format, addDays, isSameDay, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -46,6 +49,7 @@ export function ClientBookingPage({ settings, services, barbers }: Props) {
   const [barberSchedules, setBarberSchedules] = useState<BarberSchedule[]>([])
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showCart, setShowCart] = useState(false)
   
@@ -179,6 +183,11 @@ export function ClientBookingPage({ settings, services, barbers }: Props) {
       return
     }
 
+    if (!selectedPaymentMethod) {
+      toast.error('Selecione a forma de pagamento')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -210,6 +219,7 @@ export function ClientBookingPage({ settings, services, barbers }: Props) {
           appointment_date: format(selectedDate, 'yyyy-MM-dd'),
           appointment_time: selectedTime,
           total_price: cartTotal,
+          payment_method: selectedPaymentMethod,
           status: 'pending'
         })
         .select()
@@ -239,6 +249,7 @@ export function ClientBookingPage({ settings, services, barbers }: Props) {
       setSelectedTime(null)
       setCustomerName('')
       setCustomerPhone('')
+      setSelectedPaymentMethod('')
       setStep('services')
       setShowCart(false)
 
@@ -621,6 +632,64 @@ export function ClientBookingPage({ settings, services, barbers }: Props) {
                     onChange={(e) => setCustomerPhone(formatPhone(e.target.value))}
                     className="bg-input border-border"
                   />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-lg">Forma de pagamento</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    className={`flex items-center justify-center gap-2 p-4 rounded-lg border transition-all ${
+                      selectedPaymentMethod === 'credit' 
+                        ? 'border-primary bg-primary/10 text-primary' 
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => setSelectedPaymentMethod('credit')}
+                  >
+                    <CreditCard className="h-5 w-5" />
+                    <span>Crédito</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`flex items-center justify-center gap-2 p-4 rounded-lg border transition-all ${
+                      selectedPaymentMethod === 'debit' 
+                        ? 'border-primary bg-primary/10 text-primary' 
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => setSelectedPaymentMethod('debit')}
+                  >
+                    <CreditCard className="h-5 w-5" />
+                    <span>Débito</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`flex items-center justify-center gap-2 p-4 rounded-lg border transition-all ${
+                      selectedPaymentMethod === 'cash' 
+                        ? 'border-primary bg-primary/10 text-primary' 
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => setSelectedPaymentMethod('cash')}
+                  >
+                    <Banknote className="h-5 w-5" />
+                    <span>Dinheiro</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`flex items-center justify-center gap-2 p-4 rounded-lg border transition-all ${
+                      selectedPaymentMethod === 'pix' 
+                        ? 'border-primary bg-primary/10 text-primary' 
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => setSelectedPaymentMethod('pix')}
+                  >
+                    <Smartphone className="h-5 w-5" />
+                    <span>Pix</span>
+                  </button>
                 </div>
               </CardContent>
             </Card>

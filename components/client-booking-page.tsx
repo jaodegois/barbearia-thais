@@ -54,7 +54,7 @@ export function ClientBookingPage({ settings, services, barbers }: Props) {
   const [showCart, setShowCart] = useState(false)
   
   const supabase = createClient()
-  const shopName = settings?.shop_name || 'BarberFlow'
+  const shopName = settings?.shop_name || 'Thais du Corte'
   const shopLogo = settings?.shop_logo_url
   const shopAddress = settings?.shop_address
   const whatsappLink = settings?.whatsapp_link

@@ -535,6 +535,7 @@ function ReportsSection() {
   const [dayRevenue, setDayRevenue] = useState(0)
   const [monthRevenue, setMonthRevenue] = useState(0)
   const [customers, setCustomers] = useState<any[]>([])
+  const [isClearing, setIsClearing] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -546,33 +547,45 @@ function ReportsSection() {
     const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
     const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd')
 
-    // Day revenue
     const { data: dayData } = await supabase
       .from('appointments')
       .select('total_price')
       .eq('appointment_date', today)
       .eq('status', 'completed')
-
     setDayRevenue(dayData?.reduce((sum, a) => sum + a.total_price, 0) || 0)
 
-    // Month revenue
     const { data: monthData } = await supabase
       .from('appointments')
       .select('total_price')
       .gte('appointment_date', monthStart)
       .lte('appointment_date', monthEnd)
       .eq('status', 'completed')
-
     setMonthRevenue(monthData?.reduce((sum, a) => sum + a.total_price, 0) || 0)
 
-    // Customers history
     const { data: customersData } = await supabase
       .from('customers')
       .select('*')
       .order('total_spent', { ascending: false })
       .limit(20)
-
     setCustomers(customersData || [])
+  }
+
+  async function handleClearCancelled() {
+    if (!confirm('Apagar todos os agendamentos cancelados? Esta ação não pode ser desfeita.')) return
+    setIsClearing(true)
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .delete()
+        .eq('status', 'cancelled')
+      if (error) throw error
+      toast.success('Agendamentos cancelados removidos!')
+      loadReports()
+    } catch (error) {
+      toast.error('Erro ao limpar histórico')
+    } finally {
+      setIsClearing(false)
+    }
   }
 
   return (
@@ -605,17 +618,29 @@ function ReportsSection() {
 
       <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" />
-            Histórico por Cliente
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              Histórico por Cliente
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-red-500 text-red-500 hover:bg-red-500/10"
+              onClick={handleClearCancelled}
+              disabled={isClearing}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {isClearing ? 'Limpando...' : 'Limpar cancelados'}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[400px]">
             <div className="space-y-3">
               {customers.map((customer) => (
-                <div 
-                  key={customer.id} 
+                <div
+                  key={customer.id}
                   className="flex items-center justify-between p-3 rounded-lg bg-secondary"
                 >
                   <div>

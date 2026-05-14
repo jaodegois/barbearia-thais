@@ -569,7 +569,6 @@ function ReportsSection() {
       .limit(20)
     setCustomers(customersData || [])
   }
-aq
   async function handleClearCancelled() {
   if (!confirm('Apagar clientes sem agendamentos concluídos? Esta ação não pode ser desfeita.')) return
   setIsClearing(true)

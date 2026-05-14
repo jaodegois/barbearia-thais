@@ -569,23 +569,37 @@ function ReportsSection() {
       .limit(20)
     setCustomers(customersData || [])
   }
-
+aq
   async function handleClearCancelled() {
-    if (!confirm('Apagar todos os agendamentos cancelados? Esta ação não pode ser desfeita.')) return
-    setIsClearing(true)
-    try {
-      const { error } = await supabase
-        .from('appointments')
-        .delete()
-        .eq('status', 'cancelled')
-      if (error) throw error
-      toast.success('Agendamentos cancelados removidos!')
-      loadReports()
-    } catch (error) {
-      toast.error('Erro ao limpar histórico')
-    } finally {
-      setIsClearing(false)
+  if (!confirm('Apagar clientes sem agendamentos concluídos? Esta ação não pode ser desfeita.')) return
+  setIsClearing(true)
+  try {
+    // Busca IDs de clientes que têm pelo menos 1 agendamento concluído
+    const { data: completedData } = await supabase
+      .from('appointments')
+      .select('customer_id')
+      .eq('status', 'completed')
+
+    const completedIds = completedData?.map(a => a.customer_id) || []
+
+    // Apaga clientes que NÃO estão nessa lista
+    let query = supabase.from('customers').delete()
+    if (completedIds.length > 0) {
+      query = query.not('id', 'in', `(${completedIds.join(',')})`)
+    } else {
+      query = query.neq('id', '00000000-0000-0000-0000-000000000000')
     }
+
+    const { error } = await query
+    if (error) throw error
+
+    toast.success('Histórico de testes removido!')
+    loadReports()
+  } catch (error) {
+    toast.error('Erro ao limpar histórico')
+  } finally {
+    setIsClearing(false)
+  }
   }
 
   return (

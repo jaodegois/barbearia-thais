@@ -8,8 +8,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'BarberFlow - Agendamento Online',
-  description: 'Sistema de agendamento online para barbearias',
+  title: 'Thais du Corte',
+  description: 'Agendamento Online - Thais',
   generator: 'v0.app',
 }
 

@@ -280,9 +280,6 @@ export function ClientBookingPage({ settings, services, barbers }: Props) {
                           <h3 className="font-semibold text-foreground">{service.name}</h3>
                           <div className="flex items-center gap-4 mt-1">
                             <span className="text-primary font-bold">{formatCurrency(service.price)}</span>
-                            <span className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Clock className="h-3 w-3" />{service.duration_minutes} min
-                            </span>
                           </div>
                         </div>
                         {inCart ? (

@@ -213,46 +213,52 @@ export function ClientBookingPage({ settings, services, barbers }: Props) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {shopLogo ? (
-                <img src={shopLogo} alt={shopName} className="h-10 w-10 rounded-full object-cover" />
-              ) : (
-                <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
-                  <Scissors className="h-5 w-5 text-primary-foreground" />
-                </div>
-              )}
-              <div>
-                <h1 className="text-xl font-bold text-foreground">{shopName}</h1>
-                <div className="flex items-center gap-1">
-                  {[1,2,3,4,5].map(s => <Star key={s} className="h-3 w-3 fill-primary text-primary" />)}
-                  <span className="text-xs text-muted-foreground ml-1">5.0</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {whatsappLink && (
-                <Button variant="outline" size="sm"
-                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                  onClick={() => window.open(whatsappLink, '_blank')}>
-                  <MessageCircle className="h-4 w-4 mr-2" />WhatsApp
-                </Button>
-              )}
-              <Button variant="outline" size="sm" className="relative" onClick={() => setShowCart(true)}>
-                <ShoppingCart className="h-4 w-4" />
-                {cart.length > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                  </span>
-                )}
-              </Button>
-            </div>
-          </div>
+      {/* Header com banner */}
+<header className="sticky top-0 z-50 bg-card border-b border-border">
+  {/* Banner */}
+  <div className="w-full h-32 bg-primary/10 flex items-center justify-center overflow-hidden">
+    {shopLogo ? (
+      <img src={shopLogo} alt={shopName} className="w-full h-full object-cover" />
+    ) : (
+      <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-primary/20 to-primary/5">
+        <Scissors className="h-16 w-16 text-primary opacity-30" />
+      </div>
+    )}
+  </div>
+
+  {/* Info abaixo do banner */}
+  <div className="container mx-auto px-4 py-3">
+    <div className="flex items-center justify-between">
+      {/* Esquerda: nome + estrelas */}
+      <div>
+        <h1 className="text-xl font-bold text-foreground">{shopName}</h1>
+        <div className="flex items-center gap-1 mt-1">
+          {[1,2,3,4,5].map(s => <Star key={s} className="h-3 w-3 fill-primary text-primary" />)}
+          <span className="text-xs text-muted-foreground ml-1">5.0</span>
         </div>
-      </header>
+      </div>
+
+      {/* Direita: WhatsApp + carrinho */}
+      <div className="flex items-center gap-2">
+        {whatsappLink && (
+          <Button variant="outline" size="sm"
+            className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+            onClick={() => window.open(whatsappLink, '_blank')}>
+            <MessageCircle className="h-4 w-4 mr-2" />WhatsApp
+          </Button>
+        )}
+        <Button variant="outline" size="sm" className="relative" onClick={() => setShowCart(true)}>
+          <ShoppingCart className="h-4 w-4" />
+          {cart.length > 0 && (
+            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+              {cart.reduce((sum, item) => sum + item.quantity, 0)}
+            </span>
+          )}
+        </Button>
+      </div>
+    </div>
+  </div>
+</header>
 
       <main className="container mx-auto px-4 py-6 pb-32">
 

@@ -260,7 +260,7 @@ export function ClientBookingPage({ settings, services, barbers }: Props) {
   </div>
 </header>
 
-      <main className="container mx-auto px-4 py-6 pb-32">
+      <<main className="container mx-auto px-4 py-6 pb-48">
 
         {/* Serviços */}
         {step === 'services' && (

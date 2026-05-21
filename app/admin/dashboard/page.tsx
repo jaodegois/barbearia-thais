@@ -688,7 +688,10 @@ function SettingsSection({ settings, onUpdate }: { settings: Settings | null, on
   const [newPassword, setNewPassword] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [isUploadingLogo, setIsUploadingLogo] = useState(false)
-  
+  const [slotMinutes, setSlotMinutes] = useState(settings?.slot_minutes || 30)
+  const [lunchStart, setLunchStart] = useState(settings?.lunch_start || '')
+  const [lunchEnd, setLunchEnd] = useState(settings?.lunch_end || '')
+ 
   const supabase = createClient()
 
   useEffect(() => {
@@ -731,17 +734,20 @@ function SettingsSection({ settings, onUpdate }: { settings: Settings | null, on
   }
 
   async function handleSaveSettings() {
-    setIsSaving(true)
-    try {
-      const { error } = await supabase
-        .from('settings')
-        .update({
-          shop_name: shopName,
-          shop_address: shopAddress,
-          whatsapp_link: whatsappLink,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', settings?.id)
+  setIsSaving(true)
+  try {
+    const { error } = await supabase
+      .from('settings')
+      .update({
+        shop_name: shopName,
+        shop_address: shopAddress,
+        whatsapp_link: whatsappLink,
+        slot_minutes: slotMinutes,
+        lunch_start: lunchStart || null,
+        lunch_end: lunchEnd || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', settings?.id)
 
       if (error) throw error
 
@@ -860,6 +866,43 @@ function SettingsSection({ settings, onUpdate }: { settings: Settings | null, on
           </Button>
         </CardContent>
       </Card>
+      {/* Configurações de Horário */}
+<Card className="bg-card border-border">
+  <CardHeader>
+    <CardTitle>Configurações de Horário</CardTitle>
+  </CardHeader>
+  <CardContent className="space-y-4">
+    <div className="space-y-2">
+      <Label>Intervalo entre horários (minutos)</Label>
+      <Input
+        type="number"
+        value={slotMinutes}
+        onChange={(e) => setSlotMinutes(parseInt(e.target.value))}
+        className="bg-input border-border w-24"
+        min={10}
+        max={120}
+      />
+    </div>
+    <div className="space-y-2">
+      <Label>Horário de almoço — início</Label>
+      <Input
+        type="time"
+        value={lunchStart}
+        onChange={(e) => setLunchStart(e.target.value)}
+        className="bg-input border-border w-32"
+      />
+    </div>
+    <div className="space-y-2">
+      <Label>Horário de almoço — fim</Label>
+      <Input
+        type="time"
+        value={lunchEnd}
+        onChange={(e) => setLunchEnd(e.target.value)}
+        className="bg-input border-border w-32"
+      />
+    </div>
+  </CardContent>
+</Card>
 
       {/* Password Settings */}
       <Card className="bg-card border-border">

@@ -80,40 +80,70 @@ export function ClientBookingPage({ settings, services, barbers }: Props) {
   }
 
   async function loadAvailableTimes() {
-    if (!selectedBarber || !selectedDate) return
+  if (!selectedBarber || !selectedDate) return
 
-    const dayOfWeek = selectedDate.getDay()
-    const schedule = barberSchedules.find(s => s.day_of_week === dayOfWeek && s.is_working)
-    if (!schedule) { setAvailableTimes([]); return }
+  const dayOfWeek = selectedDate.getDay()
+  const schedule = barberSchedules.find(s => s.day_of_week === dayOfWeek && s.is_working)
+  if (!schedule) { setAvailableTimes([]); return }
 
-    const dateStr = format(selectedDate, 'yyyy-MM-dd')
-    const { data: appointments } = await supabase
-      .from('appointments')
-      .select('appointment_time')
-      .eq('barber_id', selectedBarber.id)
-      .eq('appointment_date', dateStr)
-      .neq('status', 'cancelled')
+  // Busca configurações de intervalo e almoço
+  const { data: settingsData } = await supabase
+    .from('settings')
+    .select('slot_minutes, lunch_start, lunch_end')
+    .single()
 
-    const bookedTimes = appointments?.map(a => a.appointment_time.slice(0, 5)) || []
-    const times: string[] = []
-    const [startHour, startMin] = schedule.start_time.split(':').map(Number)
-    const [endHour, endMin] = schedule.end_time.split(':').map(Number)
-    let currentHour = startHour
-    let currentMin = startMin
+  const slotMinutes = settingsData?.slot_minutes || 30
+  const lunchStart = settingsData?.lunch_start || null
+  const lunchEnd = settingsData?.lunch_end || null
 
-    while (currentHour < endHour || (currentHour === endHour && currentMin < endMin)) {
-      const timeStr = `${String(currentHour).padStart(2, '0')}:${String(currentMin).padStart(2, '0')}`
-      if (!bookedTimes.includes(timeStr)) {
-        const now = new Date()
-        const isToday = isSameDay(selectedDate, now)
-        if (!isToday || currentHour > now.getHours() || (currentHour === now.getHours() && currentMin > now.getMinutes())) {
-          times.push(timeStr)
-        }
+  const dateStr = format(selectedDate, 'yyyy-MM-dd')
+  const { data: appointments } = await supabase
+    .from('appointments')
+    .select('appointment_time')
+    .eq('barber_id', selectedBarber.id)
+    .eq('appointment_date', dateStr)
+    .neq('status', 'cancelled')
+
+  const bookedTimes = appointments?.map(a => a.appointment_time.slice(0, 5)) || []
+  const times: string[] = []
+  const [startHour, startMin] = schedule.start_time.split(':').map(Number)
+  const [endHour, endMin] = schedule.end_time.split(':').map(Number)
+
+  // Converte almoço para minutos totais para comparação fácil
+  const lunchStartMins = lunchStart
+    ? parseInt(lunchStart.split(':')[0]) * 60 + parseInt(lunchStart.split(':')[1])
+    : null
+  const lunchEndMins = lunchEnd
+    ? parseInt(lunchEnd.split(':')[0]) * 60 + parseInt(lunchEnd.split(':')[1])
+    : null
+
+  let currentHour = startHour
+  let currentMin = startMin
+
+  while (currentHour < endHour || (currentHour === endHour && currentMin < endMin)) {
+    const timeStr = `${String(currentHour).padStart(2, '0')}:${String(currentMin).padStart(2, '0')}`
+    const currentTotalMins = currentHour * 60 + currentMin
+
+    // Pula horários de almoço
+    const isLunch = lunchStartMins !== null && lunchEndMins !== null
+      && currentTotalMins >= lunchStartMins
+      && currentTotalMins < lunchEndMins
+
+    if (!isLunch && !bookedTimes.includes(timeStr)) {
+      const now = new Date()
+      const isToday = isSameDay(selectedDate, now)
+      if (!isToday || currentHour > now.getHours() || (currentHour === now.getHours() && currentMin > now.getMinutes())) {
+        times.push(timeStr)
       }
-      currentMin += 30
-      if (currentMin >= 60) { currentMin = 0; currentHour++ }
     }
-    setAvailableTimes(times)
+
+    currentMin += slotMinutes
+    if (currentMin >= 60) {
+      currentHour += Math.floor(currentMin / 60)
+      currentMin = currentMin % 60
+    }
+  }
+  setAvailableTimes(times)
   }
 
   function addToCart(service: Service) {

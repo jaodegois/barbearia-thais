@@ -252,25 +252,29 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
-                <Scissors className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">{settings?.shop_name || 'BarberFlow'}</h1>
-                <p className="text-sm text-muted-foreground">Painel Admin</p>
-              </div>
-            </div>
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      {/* Header com banner */}
+<header className="sticky top-0 z-50 bg-card border-b border-border">
+  <div className="w-full h-32 bg-primary/10 flex items-center justify-center overflow-hidden">
+    {settings?.shop_logo_url ? (
+      <img src={settings.shop_logo_url} alt="Banner" className="w-full h-full object-cover" />
+    ) : (
+      <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-primary/20 to-primary/5">
+        <Scissors className="h-16 w-16 text-primary opacity-30" />
+      </div>
+    )}
+  </div>
+  <div className="container mx-auto px-4 py-3">
+    <div className="flex items-center justify-between">
+      <div>
+        <h1 className="text-xl font-bold text-foreground">{settings?.shop_name || 'Thais du Corte'}</h1>
+        <p className="text-sm text-muted-foreground">Painel Admin</p>
+      </div>
+      <Button variant="ghost" size="icon" onClick={handleLogout}>
+        <LogOut className="h-5 w-5" />
+      </Button>
+    </div>
+  </div>
+</header>
 
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -935,7 +939,6 @@ function ServicesSettings() {
         .insert({
           name: newServiceName,
           price: parseFloat(newServicePrice),
-          duration_minutes: parseInt(newServiceDuration),
           is_active: true
         })
 
@@ -944,7 +947,6 @@ function ServicesSettings() {
       toast.success('Serviço adicionado!')
       setNewServiceName('')
       setNewServicePrice('')
-      setNewServiceDuration('30')
       loadServices()
     } catch (error) {
       toast.error('Erro ao adicionar serviço')
@@ -958,7 +960,6 @@ function ServicesSettings() {
         .update({
           name: service.name,
           price: service.price,
-          duration_minutes: service.duration_minutes
         })
         .eq('id', service.id)
 
@@ -1009,13 +1010,6 @@ function ServicesSettings() {
             onChange={(e) => setNewServicePrice(e.target.value)}
             className="bg-input border-border"
           />
-          <Input
-            type="number"
-            placeholder="Duração (min)"
-            value={newServiceDuration}
-            onChange={(e) => setNewServiceDuration(e.target.value)}
-            className="bg-input border-border"
-          />
           <Button onClick={handleAddService} className="bg-primary text-primary-foreground">
             Adicionar
           </Button>
@@ -1055,7 +1049,6 @@ function ServicesSettings() {
                 <>
                   <span className="flex-1 font-medium">{service.name}</span>
                   <span className="text-primary font-bold">{formatCurrency(service.price)}</span>
-                  <span className="text-sm text-muted-foreground">{service.duration_minutes}min</span>
                   <Button size="sm" variant="ghost" onClick={() => setEditingService({ ...service })}>
                     <SettingsIcon className="h-4 w-4" />
                   </Button>

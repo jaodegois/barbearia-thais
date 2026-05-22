@@ -598,5 +598,6 @@ export function ClientBookingPage({ settings, services, barbers }: Props) {
           </div>
         </footer>
       )}
+    </div>
   )
 }

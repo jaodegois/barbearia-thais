@@ -525,7 +525,7 @@ export function ClientBookingPage({ settings, services, barbers }: Props) {
 
       {/* Botão flutuante carrinho */}
       {step === 'services' && cart.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-card border-t border-border">
+        <div className="fixed bottom-12 left-0 right-0 p-4 bg-card border-t border-border">
           <Button className="w-full h-12 text-lg bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={() => setStep('barber')}>
             <Check className="h-5 w-5 mr-2" />Continuar - {formatCurrency(cartTotal)}
@@ -592,12 +592,11 @@ export function ClientBookingPage({ settings, services, barbers }: Props) {
 
       {/* Footer */}
       {shopAddress && (
-        <footer className="fixed bottom-0 left-0 right-0 bg-card border-t border-border py-3 px-4">
+        <footer className="fixed bottom-0 left-0 right-0 bg-card border-t border-border py-3 px-4 z-10">
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4" /><span>{shopAddress}</span>
           </div>
         </footer>
       )}
-    </div>
   )
 }
